@@ -786,15 +786,7 @@ rule = get_rule(case['reason_code'])
 
 with st.expander("📋 Evidence Requirements", expanded=True):
     if rule and rule.get('requirements'):
-        # ELI5: translate scheme logic into what the analyst needs to see
-        logic_labels = {
-            "ALL": "To recommend **represent**: ALL requirements below must be satisfied",
-            "ANY": f"To recommend **represent**: at least **{rule.get('min_required', 1)}** requirements below must be satisfied",
-            "EITHER": "To recommend **represent**: at least **ONE** of the options below must be satisfied",
-            "NOT_REPRESENTABLE": "This case **cannot be represented** — recommend **accept_liability**"
-        }
-        logic_text = logic_labels.get(rule['logic'], rule['logic'])
-        st.markdown(f"**{logic_text}** | Scheme: {rule['scheme'].upper()}")
+        st.markdown(f"**Logic:** {rule['logic']} | **Scheme:** {rule['scheme'].upper()}")
         st.markdown("---")
 
         # Determine case type for applicability checking
@@ -965,7 +957,24 @@ if result:
         if not evidence_items and 'error' not in result:
             st.info("No evidence assessment available.")
 
+        # Filter: only show requirements applicable to this case type
+        # (non-applicable requirements are already shown as NOT_APPLICABLE in the left column)
+        from reason_code_rules import _get_case_type
+        case_type = _get_case_type(case)
+        filtered_items = []
         for item in evidence_items:
+            req_num = item.get('requirement_number', 0)
+            req_idx = req_num - 1
+            is_applicable = True
+            if rule and rule.get('requirements') and 0 <= req_idx < len(rule['requirements']):
+                req = rule['requirements'][req_idx]
+                applies_to = req.get('applies_to', ['goods', 'services']) if isinstance(req, dict) else ['goods', 'services']
+                if case_type not in applies_to:
+                    is_applicable = False
+            if is_applicable:
+                filtered_items.append(item)
+
+        for item in filtered_items:
             status = item.get('status', 'missing')
             status_emoji = {'satisfied': '✅', 'partial': '⚠️', 'missing': '❌', 'not_applicable': '➖'}.get(status, '❓')
             req_text = ""
@@ -973,8 +982,8 @@ if result:
                 req_idx = item.get('requirement_number', 1) - 1
                 if 0 <= req_idx < len(rule['requirements']):
                     req_item = rule['requirements'][req_idx]
-                req_text_str = req_item.get('text', req_item) if isinstance(req_item, dict) else req_item
-                req_text = f" — {req_text_str[:60]}..."
+                    req_text_str = req_item.get('text', req_item) if isinstance(req_item, dict) else req_item
+                    req_text = f" — {req_text_str[:60]}..."
 
             with st.container():
                 st.markdown(f"**{status_emoji} Req {item['requirement_number']}**{req_text}")
