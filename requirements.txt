@@ -1,0 +1,15 @@
+# Core
+openai>=1.0.0
+anthropic>=0.21.0
+python-dotenv>=1.0.0
+
+# Document processing
+pdfplumber>=0.10.0
+pdf2image>=1.16.0
+Pillow>=10.0.0
+
+# UI
+streamlit>=1.32.0
+
+# Data
+jsonlines>=4.0.0

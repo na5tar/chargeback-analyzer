@@ -1,0 +1,205 @@
+[
+  {
+    "case_id": "CB-2025-0001",
+    "results": {
+      "openai": {
+        "recommendation": "represent",
+        "confidence": 95,
+        "tokens": 4440,
+        "mode": "full",
+        "rationale": "The evidence strongly supports the merchant's claim that the merchandise was delivered to the cardholder's address as ordered. All relevant requirements are satisfied with proof of delivery before the chargeback date and matching address details. The chargeback should be challenged based on this comprehensive evidence.",
+        "justification": "All 3 applicable requirements satisfied. We have a defensible case.",
+        "evidence_assessment": [
+          {
+            "requirement_number": 1,
+            "requirement_text": "Proof of delivery: tracking number, carrier name, and confirmation of delivery to the cardholder's address",
+            "status": "satisfied",
+            "document_reference": "CB-2025-0001_delivery_confirmation.pdf, page 1",
+            "explanation": "Tracking number, carrier name (Royal Mail), and delivery confirmation to the cardholder's address are provided.",
+            "citation": "Tracking number: RM98421144GB. Delivered to SW4 7QR and signed by WHITFORD on 24 March 2025 at 11:47."
+          },
+          {
+            "requirement_number": 2,
+            "requirement_text": "Date of delivery / service rendered is on or before the chargeback date",
+            "status": "satisfied",
+            "document_reference": "CB-2025-0001_delivery_confirmation.pdf, page 1",
+            "explanation": "The delivery date was 24 March 2025, which is before the chargeback date of 18 April 2025.",
+            "citation": "Delivered on 24 March 2025."
+          },
+          {
+            "requirement_number": 3,
+            "requirement_text": "The delivery address materially matches the address provided by the cardholder at purchase",
+            "status": "satisfied",
+            "document_reference": "CB-2025-0001_carrier_tracking.pdf, page 1",
+            "explanation": "The billing and delivery addresses match the transaction address details.",
+            "citation": "Billing and shipping address: 22 Cavendish Court, London SW4 7QR."
+          },
+          {
+            "requirement_number": 4,
+            "requirement_text": "The delivery address materially matches the address provided by the cardholder at purchase",
+            "status": "satisfied",
+            "document_reference": "Auto-assessed from metadata: AVS=Y, billing=shipping=SW4 7QR",
+            "explanation": "Requirement satisfied: AVS verification passed (Y), billing address (SW4 7QR) matches shipping address (SW4 7QR), and delivery documents confirm shipment to this verified address.",
+            "citation": "Transaction metadata: AVS=Y, billing_postcode=SW4 7QR, shipping_postcode=SW4 7QR"
+          }
+        ],
+        "systematic_flags": [
+          {
+            "flag_type": "MANUAL_REVIEW",
+            "description": "Requirement 4 satisfied per transaction metadata: AVS=Y, billing address (SW4 7QR) matches shipping address (SW4 7QR). Delivery to verified address confirmed.",
+            "location": "analyzer.py post-processing"
+          }
+        ],
+        "elapsed_sec": 6.86,
+        "error": null
+      },
+      "kimi": {
+        "recommendation": "represent",
+        "confidence": 92,
+        "tokens": 13901,
+        "mode": "full",
+        "rationale": "The merchant has provided compelling evidence of delivery under Visa reason code 13.1. Royal Mail tracking RM98421144GB confirms delivery to the cardholder's verified billing address (22 Cavendish Court, SW4 7QR) on 24 March 2025, which is well before the 18 April 2025 chargeback date. The package was signed for by WHITFORD, matching the cardholder's surname, and the transaction had strong authentication controls (AVS=Y, CVV=M, 3DS authenticated). Although the cardholder claims non-receipt, the objective carrier proof of delivery to the verified address satisfies scheme requirements. The absence of customer service logs does not undermine the core delivery evidence.",
+        "justification": "All 3 applicable requirements satisfied. We have a defensible case.",
+        "evidence_assessment": [
+          {
+            "requirement_number": 1,
+            "requirement_text": "Proof of delivery: tracking number, carrier name, and confirmation of delivery to the cardholder's address",
+            "status": "satisfied",
+            "document_reference": "CB-2025-0001_delivery_confirmation.pdf, page 1; CB-2025-0001_carrier_tracking.pdf, page 1",
+            "explanation": "The merchant provided a Royal Mail tracking number (RM98421144GB), the carrier name (Royal Mail), and a delivery confirmation showing the item was delivered to the cardholder's address and signed for by WHITFORD.",
+            "citation": "Tracking number: RM98421144GB; Sender: NorthernThread Apparel Ltd; Recipient: M. Whitford, 22 Cavendish Court, London SW4 7QR; Event: DELIVERED \u2014 signed by WHITFORD at 24 Mar 2025 11:47, Location SW4 7QR. Proof of Delivery statement: 'Signature on file. This item was delivered to the address shown and signed for at 11:47 on 24 March 2025.'"
+          },
+          {
+            "requirement_number": 2,
+            "requirement_text": "Date of delivery / service rendered is on or before the chargeback date",
+            "status": "satisfied",
+            "document_reference": "CB-2025-0001_delivery_confirmation.pdf, page 1",
+            "explanation": "The delivery confirmation shows the item was delivered on 24 March 2025 at 11:47. The chargeback date is 18 April 2025. The delivery date is clearly before the chargeback date.",
+            "citation": "Date/Time column showing '24 Mar 2025 11:47' for DELIVERED event; Proof of Delivery statement confirming '24 March 2025'."
+          },
+          {
+            "requirement_number": 3,
+            "requirement_text": "The delivery address materially matches the address provided by the cardholder at purchase",
+            "status": "satisfied",
+            "document_reference": "CB-2025-0001_carrier_tracking.pdf, page 1; CB-2025-0001_delivery_confirmation.pdf, page 1",
+            "explanation": "The cardholder's billing address provided at purchase was 22 Cavendish Court, London SW4 7QR (billing and shipping postcodes both SW4 7QR per case data and carrier tracking). The Royal Mail delivery confirmation shows delivery to exactly the same address: 22 Cavendish Court, London SW4 7QR. AVS result is 'Y', confirming the billing address was verified by the issuer.",
+            "citation": "Carrier tracking: 'Billing address: 22 Cavendish Court, London SW4 7QR' and 'Shipping address: 22 Cavendish Court, London SW4 7QR'. Delivery confirmation recipient: 'M. Whitford, 22 Cavendish Court, London SW4 7QR' with delivery location 'SW4 7QR'."
+          },
+          {
+            "requirement_number": 4,
+            "requirement_text": "The delivery address materially matches the address provided by the cardholder at purchase",
+            "status": "satisfied",
+            "document_reference": "Auto-assessed from metadata: AVS=Y, billing=shipping=SW4 7QR",
+            "explanation": "Requirement satisfied: AVS verification passed (Y), billing address (SW4 7QR) matches shipping address (SW4 7QR), and delivery documents confirm shipment to this verified address.",
+            "citation": "Transaction metadata: AVS=Y, billing_postcode=SW4 7QR, shipping_postcode=SW4 7QR"
+          }
+        ],
+        "systematic_flags": [
+          {
+            "flag_type": "MANUAL_REVIEW",
+            "description": "Requirement 4 satisfied per transaction metadata: AVS=Y, billing address (SW4 7QR) matches shipping address (SW4 7QR). Delivery to verified address confirmed.",
+            "location": "analyzer.py post-processing"
+          }
+        ],
+        "elapsed_sec": 127.41,
+        "error": null
+      }
+    }
+  },
+  {
+    "case_id": "CB-2025-0006",
+    "results": {
+      "openai": {
+        "recommendation": "request_more_evidence",
+        "confidence": 60,
+        "tokens": 5318,
+        "mode": "full",
+        "rationale": "While the product description and delivery photo support that the item initially matched the advertised specs, there is insufficient documentation about the alleged structural defect or any conversation between the merchant and cardholder regarding returns or refunds. Without evidence of offering a resolution to the cardholder's complaint, the case lacks critical support.",
+        "justification": "1/3 applicable requirements satisfied. Missing: 2 item(s). Request specific evidence from merchant.",
+        "evidence_assessment": [
+          {
+            "requirement_number": 1,
+            "requirement_text": "The merchant's published description of the item the cardholder purchased",
+            "status": "satisfied",
+            "document_reference": "CB-2025-0006_product_listing.pdf, page 1",
+            "explanation": "The product listing provides a detailed description of the Carlton Mid-Century Armchair including its materials, dimensions, and finish.",
+            "citation": "Description: The Carlton armchair combines a hand-finished beech frame with deep-buttoned sage velvet upholstery..."
+          },
+          {
+            "requirement_number": 2,
+            "requirement_text": "Evidence the item delivered matches that description (photos, specs, serial number match)",
+            "status": "partial",
+            "document_reference": "CB-2025-0006_delivery_photo.png",
+            "explanation": "The delivery photo shows a Carlton Armchair in sage velvet which matches the description, but it doesn't provide information on structural integrity.",
+            "citation": "Photo taken by driver at delivery (front view only)"
+          },
+          {
+            "requirement_number": 3,
+            "requirement_text": "Evidence the merchant offered a return/refund route and the cardholder did not use it, OR evidence the cardholder used and retained the merchandise after raising the complaint",
+            "status": "missing",
+            "document_reference": "",
+            "explanation": "The returns policy is detailed, but there's no evidence presented showing communication with the cardholder offering a return/refund route or showing that the cardholder didn't use it.",
+            "citation": ""
+          }
+        ],
+        "systematic_flags": [
+          {
+            "flag_type": "MANUAL_REVIEW",
+            "description": "The evidence of the armchair's match is partial due to a lack of detail on the structural integrity and response to return requests.",
+            "location": "CB-2025-0006_delivery_photo.png"
+          }
+        ],
+        "elapsed_sec": 7.3,
+        "error": null
+      },
+      "kimi": {
+        "recommendation": "request_more_evidence",
+        "confidence": 30,
+        "tokens": 17263,
+        "mode": "full",
+        "rationale": "The merchant satisfies Requirement 1 with a clear, contemporaneous product listing. Requirement 2 is only partially met because the delivery image is a front-view illustration that cannot verify the structural integrity of the frame or leg seating, which is the precise nature of the cardholder's complaint. Requirement 3 fails entirely: the merchant has not rebutted the cardholder's claim of an ignored refund request with any communications or proof of non-use of the returns route. Although the transaction carries robust authentication (AVS Y, CVV M, 3DS authenticated, billing/shipping match), this does not speak to whether the merchandise was defective. Without evidence disproving the defect or proving the cardholder bypassed available remedies, the representment is weak.",
+        "justification": "1/3 applicable requirements satisfied. Missing: 2 item(s). Request specific evidence from merchant.",
+        "evidence_assessment": [
+          {
+            "requirement_number": 1,
+            "requirement_text": "The merchant's published description of the item the cardholder purchased",
+            "status": "satisfied",
+            "document_reference": "CB-2025-0006_product_listing.pdf, page 1",
+            "explanation": "The document provides a complete snapshot of the product page as of the transaction date (15 April 2025). It identifies the exact item (Carlton Mid-Century Armchair, Sage Velvet), SKU (HH-ARM-CARL-SG), price (\u00a3329.00), and detailed description including frame materials, upholstery, legs, dimensions, and weight limit.",
+            "citation": "Product: Carlton Mid-Century Armchair, Sage Velvet. Price: \u00a3329.00. SKU: HH-ARM-CARL-SG. Description: The Carlton armchair combines a hand-finished beech frame with deep-buttoned sage velvet upholstery. Tapered solid oak legs. Seat height 46cm. Maximum recommended user weight 120kg."
+          },
+          {
+            "requirement_number": 2,
+            "requirement_text": "Evidence the item delivered matches that description (photos, specs, serial number match)",
+            "status": "partial",
+            "document_reference": "CB-2025-0006_delivery_photo.png, page 1",
+            "explanation": "The image shows a sage-colored armchair consistent with the listed product name and color. However, it is strictly a front-view image and does not show the underside, rear, or leg joints, which are critical given the cardholder's specific allegation of a wobbling frame and improperly seated leg. No serial number, specification sheet, or multi-angle inspection evidence is provided. Additionally, the image appears to be a simplified illustration rather than a true photograph, limiting its probative value for verifying delivered condition.",
+            "citation": "Carlton Armchair (Sage) \u2014 delivered 18 Apr 2025. Photo taken by driver at delivery (front view only)."
+          },
+          {
+            "requirement_number": 3,
+            "requirement_text": "Evidence the merchant offered a return/refund route and the cardholder did not use it, OR evidence the cardholder used and retained the merchandise after raising the complaint",
+            "status": "missing",
+            "document_reference": null,
+            "explanation": "The returns policy document proves that a return/refund route existed, but it does not prove the cardholder failed to use it. The issuer narrative explicitly alleges the cardholder submitted a refund request that the merchant ignored. The merchant has provided no email logs, customer service tickets, timestamps, or communications demonstrating the cardholder did not contact returns@havenhome.example, or that a remedy was offered and declined. Nor is there any evidence the cardholder retained or used the armchair after raising the complaint.",
+            "citation": null
+          }
+        ],
+        "systematic_flags": [
+          {
+            "flag_type": "CONFIDENT_BUT_IRRELEVANT",
+            "description": "The delivery image is captioned as a driver-taken delivery photo but presents as a simplified, flat illustration with only a front-facing view. Because the cardholder's dispute centers on a structural frame defect and an unseated leg, a front-view image\u2014especially one that does not appear to be a true photograph\u2014does not substantively rebut the claim despite its authoritative label.",
+            "location": "CB-2025-0006_delivery_photo.png"
+          },
+          {
+            "flag_type": "MANUAL_REVIEW",
+            "description": "Transaction metadata shows strong authentication (AVS=Y, CVV=M, 3DS authenticated) and billing/shipping postcode match (BS8 1TR), confirming a legitimate, cardholder-authorized purchase. However, these factors do not resolve the merchandise-quality dispute and must not be conflated with evidence that the item was non-defective or that the merchant honored its returns process.",
+            "location": "Case transaction metadata"
+          }
+        ],
+        "elapsed_sec": 182.9,
+        "error": null
+      }
+    }
+  }
+]

@@ -1,0 +1,19 @@
+# Environment variables
+.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+
+# Runtime artifacts (auto-created, not source)
+telemetry.jsonl
+*.bak.*
+*.json.bak.*
+
+# Test/dev outputs (keep comparison_two_cases.json if you want it committed)
+latency_test_results.json
+test_results.json
