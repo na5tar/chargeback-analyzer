@@ -8,11 +8,25 @@ At scale, this supports **80+ cases per analyst per day** by reducing per-case d
 
 ## Quick Start
 
+### Prerequisites
+
+`pdf2image` requires the `poppler` system library for PDF processing:
+
+```bash
+# macOS
+brew install poppler
+
+# Ubuntu/Debian
+sudo apt-get install poppler-utils
+```
+
+### Run the Tool
+
 ```bash
 # 1. Enter directory
-cd chargeback-test
+cd chargeback-analyzer
 
-# 2. Install dependencies
+# 2. Install Python dependencies
 pip install -r requirements.txt
 
 # 3. Set up environment
@@ -33,14 +47,14 @@ The UI opens at `http://localhost:8501`. Sign in as `analyst_1`, pick a case fro
 
 **Pivoted to OpenAI after rigorous latency testing** (5 cases × 2 providers — Kimi and OpenAI):
 
-| Provider | Avg Latency | Tokens/Case | Cost/Case | Verdict |
-|----------|-------------|-------------|-----------|---------|
-| **Kimi** | 74.3s | ~13,000 | ~$0.002 | 14× slower, 3.6× more tokens |
-| **OpenAI GPT-4o** | **5.4s** | ~3,600 | ~$0.010 | **Default** — fastest, most efficient |
+| Provider | Avg Latency | Tokens/Case | Cost/Case | Verdict | Tested? |
+|----------|-------------|-------------|-----------|---------|---------|
+| **Kimi** | 74.3s | ~13,000 | ~$0.002 | 14× slower, 3.6× more tokens | ✅ 5 cases |
+| **OpenAI GPT-4o** | **5.4s** | ~3,600 | ~$0.010 | **Default** — fastest, most efficient | ✅ 5 cases |
 
 **Key finding:** Kimi's lower per-token cost is **offset by verbosity and latency**. At 80 cases/day/analyst, the **~69 seconds saved per case** (74.3s → 5.4s) equals **~92 minutes/day** — nearly **1.5 hours of wait time recovered per analyst**. Kimi remains architecturally supported as a cost-conscious fallback if server performance improves.
 
-**Claude 3.5 Sonnet** is architecturally wired into the multi-provider wrapper (`llm_client.py`) with native Anthropic vision format conversion, but was **not benchmarked** in this exercise. It is reserved for future evaluation on complex reasoning tasks.
+**Claude 3.5 Sonnet** is architecturally wired into the multi-provider wrapper (`llm_client.py`) with native Anthropic vision format conversion, but was **not benchmarked** in this exercise. It is reserved for future evaluation on complex reasoning tasks. **Not tested — latency and token estimates are theoretical.**
 
 ---
 
@@ -121,7 +135,7 @@ def score_page_relevance(page_text, case):
 |------|----------------|------------|--------|-----------|
 | **TIER_1** | ≥ 60 | 1–2 pages | Auto-send to LLM | High confidence these pages contain the core evidence. Analyst never sees the rest. |
 | **TIER_2** | ≥ 25 | 1–5 pages | Auto-send batch | Moderate confidence. More pages, but still filtered. Analyst can review if needed. |
-| **TIER_3** | < 25 | Top 5 pages | Analyst review | Low confidence or no case-specific matches. Analyst manually selects pages. |
+| **TIER_3** | < 25 | Top 5 pages | Auto-sent with analyst note | Low confidence or no case-specific matches. Pages are still sent to LLM, but flagged for analyst attention. |
 
 ### Example
 
@@ -241,7 +255,7 @@ provider = select_provider(task_type="reasoning")     # → "claude"
 |----------|-------------------|-----|-----------------|
 | **OpenAI GPT-4o** | Every case, by default | Fastest (5.4s), most token-efficient (~3,600 tokens), reliable JSON output. Proven in testing. | Default — no action needed |
 | **Kimi** | Cost-sensitive bulk jobs; testing/dev; if OpenAI is down | Lowest cost per token (~$0.002/case). Trade-off: 14× slower, 3.6× more tokens. | Admin force only, or programmatic `task_type="cost_sensitive"` |
-| **Claude 3.5 Sonnet** | Complex reasoning tasks; ambiguous evidence; conflicting documents | Stronger long-context reasoning, more nuanced rationale. **Not benchmarked in this exercise.** | Admin force only, or programmatic `task_type="reasoning"` |
+| **Claude 3.5 Sonnet** | Complex reasoning tasks; ambiguous evidence; conflicting documents | Stronger long-context reasoning, more nuanced rationale. **Not benchmarked — latency and token estimates are theoretical.** | Admin force only, or programmatic `task_type="reasoning"` |
 
 ### Future: Automatic Routing (Not Implemented)
 

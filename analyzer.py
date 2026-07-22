@@ -29,11 +29,15 @@ def build_system_prompt(rule, case=None):
         "NOT_REPRESENTABLE": "This reason code generally cannot be represented"
     }
 
-    # Only show requirements applicable to this case type
-    applicable_reqs = _get_applicable_requirements(rule, case) if case else [r.get('text', r) if isinstance(r, dict) else r for r in rule.get('requirements', [])]
+    # Show ALL requirements with original numbering, marking non-applicable ones
+    # This prevents misalignment between LLM output (uses original numbers) 
+    # and post-processing (expects original numbers)
+    case_type = _get_case_type(case) if case else "goods"
     requirements_text = "\n".join([
-        f"{i+1}. {req}" 
-        for i, req in enumerate(applicable_reqs)
+        f"{i+1}. {req.get('text', req) if isinstance(req, dict) else req}" + 
+        (f" [NOT APPLICABLE for {case_type} — mark status as not_applicable]" 
+         if isinstance(req, dict) and case_type not in req.get('applies_to', ['goods', 'services']) else "")
+        for i, req in enumerate(rule.get('requirements', []))
     ])
 
     # Build impossibility warning for the prompt if any exist
@@ -240,9 +244,14 @@ def analyze_case(case, images, provider=None, task_type="default", benchmark=Fal
     print(f"Using provider: {provider}")
 
     # Safety: Cap images per API call
+    original_count = len(images)
     if len(images) > MAX_IMAGES_PER_API_CALL:
-        print(f"Warning: {len(images)} images, limiting to {MAX_IMAGES_PER_API_CALL}")
+        truncated_pages = [img['page'] for img in images[MAX_IMAGES_PER_API_CALL:]]
         images = images[:MAX_IMAGES_PER_API_CALL]
+        print(f"Warning: {original_count} images, truncated to {MAX_IMAGES_PER_API_CALL}. Omitted pages: {truncated_pages}")
+        # Store truncation info for later flagging
+        for img in images:
+            img['_truncation_warning'] = f"{original_count - MAX_IMAGES_PER_API_CALL} pages omitted: {truncated_pages}"
 
     # Safety: Cap images per case
     if len(images) > MAX_IMAGES_PER_CASE:
@@ -332,7 +341,7 @@ IMPORTANT:
                 provider=provider,
                 system=None,
                 max_tokens=max_tokens,
-                temperature=1.0
+                temperature=0.3
             )
             response_text = response["text"]
             actual_usage = response.get("usage", {})
@@ -441,7 +450,7 @@ IMPORTANT:
                 provider=provider,
                 system=None,  # Already included in messages
                 max_tokens=max_tokens,
-                temperature=1.0
+                temperature=0.3
             )
             response_text = response["text"]
             actual_usage = response.get("usage", {})
@@ -525,40 +534,15 @@ IMPORTANT:
     satisfied_count = sum(1 for item in evidence_items if item['status'] == 'satisfied')
     applicable_count = sum(1 for item in evidence_items if item['status'] != 'not_applicable')
 
-    # Post-process: auto-assess requirements using transaction metadata when evidence is obvious
-    # This catches cases where the LLM skipped a requirement but the answer is clear from metadata
-    tx = case.get('transaction', {}) if case else {}
-    for item in evidence_items:
-        req_num = item.get('requirement_number', 0)
-        req_text = item.get('requirement_text', '')
-
-        # Auto-assess delivery address requirement (Req 4 for 13.1, Req 3 for 4855)
-        if ("delivery address" in req_text.lower() or "address matches" in req_text.lower() or "cardholder's address" in req_text.lower()):
-            if item.get('status') == 'missing' and item.get('document_reference') == 'N/A':
-                # LLM skipped this but we can check metadata
-                avs = tx.get('avs_result', '')
-                billing = tx.get('billing_address_postcode', '')
-                shipping = tx.get('shipping_address_postcode', '')
-
-                if avs == 'Y' and billing and shipping and billing == shipping:
-                    # Strong indicator: AVS passed and billing=shipping
-                    # Check if any delivery documents exist
-                    docs = case.get('merchant_evidence_documents', [])
-                    has_delivery_doc = any(d.lower().find('delivery') != -1 or d.lower().find('tracking') != -1 or d.lower().find('confirm') != -1 for d in docs)
-
-                    if has_delivery_doc:
-                        item['status'] = 'satisfied'
-                        item['document_reference'] = f"Auto-assessed from metadata: AVS={avs}, billing=shipping={billing}"
-                        item['explanation'] = f"Requirement satisfied: AVS verification passed ({avs}), billing address ({billing}) matches shipping address ({shipping}), and delivery documents confirm shipment to this verified address."
-                        item['citation'] = f"Transaction metadata: AVS={avs}, billing_postcode={billing}, shipping_postcode={shipping}"
-                        # Add a flag
-                        flags = analysis.get('systematic_flags', [])
-                        flags.append({
-                            "flag_type": "MANUAL_REVIEW",
-                            "description": f"Requirement {req_num} satisfied per transaction metadata: AVS={avs}, billing address ({billing}) matches shipping address ({shipping}). Delivery to verified address confirmed.",
-                            "location": "analyzer.py post-processing"
-                        })
-                        analysis['systematic_flags'] = flags
+    # NOTE: Auto-satisfaction of address requirements has been REMOVED in v1.1.
+    # Previous logic upgraded 'missing' to 'satisfied' based on AVS + billing=shipping + 
+    # filename keywords, without verifying document content. This produced false positives.
+    # 
+    # The LLM must verify delivery address from actual document content. Metadata (AVS, 
+    # billing/shipping match) is supporting context only — never sufficient on its own.
+    # 
+    # If the LLM marks a delivery-address requirement as 'missing', the analyst should
+    # verify by checking the actual delivery documents, not rely on metadata shortcuts.
 
     # Re-count satisfied after auto-assessment
     satisfied_count = sum(1 for item in evidence_items if item['status'] == 'satisfied')

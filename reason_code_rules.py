@@ -236,14 +236,23 @@ def _detect_impossibilities(case):
     if tx.get('shipping_address_postcode') is None and tx.get('merchant_mcc') in ['5815', '7997']:
         impossible_reasons.append("Digital goods merchant with no shipping address on file")
 
-    # Billing/shipping address mismatch for goods — cardholder may not have authorized delivery
+    # Billing/shipping address mismatch — only fatal for delivery-dependent reason codes
+    # For other codes (12.5 Incorrect Amount, 12.6.1 Duplicate, 13.3 Defective, 13.7 Cancelled),
+    # address mismatch is irrelevant to the dispute.
     billing = tx.get('billing_address_postcode')
     shipping = tx.get('shipping_address_postcode')
+    reason_code = case.get('reason_code', '')
+    delivery_dependent_codes = ('13.1', '4855', '4853', '10.4', '4837', '4863')
+
     if billing and shipping and billing != shipping:
-        impossible_reasons.append(
-            f"Shipping address ({shipping}) does not match billing address ({billing}). "
-            f"Cardholder may not have authorized delivery to this address."
-        )
+        if reason_code in delivery_dependent_codes:
+            impossible_reasons.append(
+                f"Shipping address ({shipping}) does not match billing address ({billing}). "
+                f"Cardholder may not have authorized delivery to this address."
+            )
+        else:
+            # Downgrade to systematic flag for non-delivery codes
+            pass  # Address mismatch is not a structural impossibility for these codes
 
     # For goods/services not received codes: if cardholder explicitly denies the address, 
     # and AVS failed, this is a strong fraud indicator
@@ -308,6 +317,9 @@ def apply_logic(rule, satisfied_count, case=None):
     if logic == "ALL":
         if satisfied_count >= total_reqs:
             return "represent", f"All {total_reqs} applicable requirements satisfied. We have a defensible case."
+        elif satisfied_count == 0 and total_reqs >= 3:
+            # No evidence at all for a multi-requirement code — case is likely indefensible
+            return "accept_liability", f"0/{total_reqs} applicable requirements satisfied. No compelling evidence submitted. Recommend accepting liability rather than requesting more evidence."
         else:
             return "request_more_evidence", f"{satisfied_count}/{total_reqs} applicable requirements satisfied. Missing: {total_reqs - satisfied_count} item(s). Request specific evidence from merchant."
 
